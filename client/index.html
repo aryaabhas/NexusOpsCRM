@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Email Tracker — Minimal AI-Powered Gmail Summarizer and Semantic Search." />
+  <title>Email Tracker — AI Workspace</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✉️</text></svg>" />
+  <!-- jsPDF Library for exporting notes to PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- SheetJS Library for importing and viewing Excel/CSV workbooks -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+  <div id="notification-center" class="notification-center"></div>
+  <div id="root">
+
+    <!-- ═══════════════════════════════════════════════════════
+         UNIFIED TOP HEADER (Always Visible)
+    ═══════════════════════════════════════════════════════ -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="logo">
+          <!-- Hamburger Button for navigation drawer -->
+          <button id="hamburger-btn" class="btn btn-ghost"
+            style="padding: 6px; font-size: 18px; margin-right: 8px; display: none;">☰</button>
+          <div class="logo-icon">✉</div>
+          <span class="logo-text">NexusOpsCRM</span>
+          <span class="logo-badge">v1.2</span>
+        </div>
+
+        <!-- Header Right: Logged out / Logged in states -->
+        <div class="header-right">
+          <div id="header-guest" class="header-status">
+            <span class="status-dot"></span>
+            <span class="status-text">Not signed in</span>
+          </div>
+
+          <div id="header-user" class="user-info hidden">
+            <button id="open-compose-btn" class="btn btn-primary" style="padding: 6px 14px; font-size: 13px;">
+              ✉️ Compose
+            </button>
+            <div class="notification-bell-container" style="position: relative;">
+              <button id="notification-bell-btn" class="btn btn-ghost"
+                style="padding: 6px; font-size: 16px; position: relative;">
+                🔔<span id="notification-badge" class="notification-badge hidden">0</span>
+              </button>
+              <div id="notification-dropdown" class="notification-dropdown hidden">
+                <div class="notification-dropdown-header">
+                  <span>Tracked Replies</span>
+                </div>
+                <div id="notification-dropdown-list" class="notification-dropdown-list">
+                  <div class="no-alerts-msg">No active reply alerts</div>
+                </div>
+              </div>
+            </div>
+            <!-- Settings Gear Button -->
+            <button id="settings-gear-btn" class="btn btn-ghost"
+              style="padding: 6px; font-size: 16px; margin-right: 4px;"
+              title="System Cleanliness & Diagnostics">⚙️</button>
+            <img id="user-avatar" src="" alt="User avatar" />
+            <div class="user-details">
+              <span id="user-name"></span>
+              <span id="user-email"></span>
+            </div>
+            <button id="sign-out-btn" class="btn btn-ghost">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════
+         MAIN CONTAINER
+    ═══════════════════════════════════════════════════════ -->
+    <div class="main-container">
+
+      <!-- ── LOGIN SECTION ── -->
+      <section id="login-section" class="hero-section">
+        <div class="hero-card">
+          <div class="hero-header-badge">✦ SAAS CRM & OPERATIONS WORKSPACE</div>
+          <h1 class="hero-title">NexusOpsCRM Workspace</h1>
+          <p class="hero-subtitle">
+            Ingest customer leads, convert emails to operational Kanban task cards, manage contact spreadsheets, and
+            execute hybrid semantic-lexical vector search queries.
+          </p>
+
+          <div class="features-grid">
+            <div class="feature-item">
+              <div class="feature-icon-box">👥</div>
+              <div class="feature-content">
+                <h3>Lead Directory</h3>
+                <p>Ingest & import clients</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon-box">📋</div>
+              <div class="feature-content">
+                <h3>Kanban Board</h3>
+                <p>Manage operations pipeline</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon-box">🔍</div>
+              <div class="feature-content">
+                <h3>Hybrid Search</h3>
+                <p>FAISS + TF-IDF matches</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-action">
+            <button id="sign-in-btn" class="btn btn-primary btn-hero">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="currentColor" />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="currentColor" />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                  fill="currentColor" />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="currentColor" />
+              </svg>
+              Continue with Google
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── APP SECTION ── -->
+      <div id="app-section" class="app-view hidden">
+
+        <!-- ── SIDEBAR NAV DRAWER ── -->
+        <div id="sidebar-drawer" class="sidebar-drawer hidden">
+          <div class="drawer-header"
+            style="display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--border-subtle);">
+            <h3 style="margin:0; font-size:15px; font-weight:700; color:var(--text-primary);">Navigation</h3>
+            <button id="close-drawer-btn" class="close-btn"
+              style="background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">&times;</button>
+          </div>
+          <div class="drawer-content" style="padding:10px 0;">
+            <div class="drawer-nav-list" style="display:flex; flex-direction:column; gap:6px;">
+              <button class="drawer-nav-item tab-btn active" data-tab="inbox"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">📥
+                Inbox</button>
+              <button class="drawer-nav-item tab-btn" data-tab="profiles"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">👥
+                Client Profiles</button>
+              <button class="drawer-nav-item tab-btn" data-tab="kanban"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">📋
+                Operations Board</button>
+              <button class="drawer-nav-item tab-btn" data-tab="summaries"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">🗂
+                Stored Summaries</button>
+              <button class="drawer-nav-item tab-btn" data-tab="search"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">🔍
+                Semantic Search</button>
+              <button class="drawer-nav-item tab-btn" data-tab="graph"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">🕸️
+                Knowledge Graph</button>
+              <button class="drawer-nav-item tab-btn" data-tab="logs"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">📋
+                Audit Trail</button>
+              <button class="drawer-nav-item tab-btn" data-tab="scratchpad"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">📝
+                Scratchpad</button>
+              <button class="drawer-nav-item tab-btn" data-tab="spreadsheet"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">📊
+                Spreadsheet</button>
+              <button class="drawer-nav-item tab-btn" data-tab="calendar"
+                style="text-align:left; width:100%; padding:10px 16px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:13.5px; border-left:3px solid transparent;">📅
+                Scheduling</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="drawer-backdrop" class="drawer-backdrop hidden"
+          style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:998;">
+        </div>
+        <!-- Fetch Controls Bar -->
+        <div class="fetch-panel">
+          <div class="filter-group">
+            <label for="sender-filter">Filter by sender:</label>
+            <div class="input-wrapper">
+              <span class="input-icon">@</span>
+              <input id="sender-filter" type="email" placeholder="e.g. newsletter@company.com (leave blank for all)" />
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label for="date-preset-filter">Timeframe:</label>
+            <div class="select-wrapper">
+              <select id="date-preset-filter">
+                <option value="all">All Time</option>
+                <option value="7">Last 7 Days</option>
+                <option value="14">Last 14 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+                <option value="custom">Custom Date Range</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="custom-date-container" class="filter-group custom-dates hidden">
+            <div class="date-input-group">
+              <label for="start-date-input">From:</label>
+              <input id="start-date-input" type="date" />
+            </div>
+            <div class="date-input-group">
+              <label for="end-date-input">To:</label>
+              <input id="end-date-input" type="date" />
+            </div>
+          </div>
+
+          <div class="fetch-actions">
+            <button id="fetch-btn" class="btn btn-primary" style="min-width:130px">
+              Fetch Emails
+            </button>
+            <button id="summarize-all-btn" class="btn btn-secondary" disabled>
+              ✦ Summarize All
+            </button>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs (Priority Plus layout) -->
+        <div class="tabs" role="tablist" id="priority-tabs-bar" style="position:relative;">
+          <div class="visible-tabs" style="display:flex; gap:6px; flex-wrap:nowrap;">
+            <button class="tab-btn active" data-tab="inbox" role="tab">📥 Inbox</button>
+            <button class="tab-btn" data-tab="profiles" role="tab">👥 Client Profiles</button>
+            <button class="tab-btn" data-tab="kanban" role="tab">📋 Operations Board</button>
+            <button class="tab-btn" data-tab="summaries" role="tab">🗂 Stored Summaries</button>
+            <button class="tab-btn" data-tab="search" role="tab">🔍 Semantic Search</button>
+            <button class="tab-btn" data-tab="graph" role="tab">🕸️ Knowledge Graph</button>
+          </div>
+          <!-- Overflow Dropdown Trigger -->
+          <div class="tab-overflow-container" style="position:relative; display:inline-block; margin-left: 6px;">
+            <button id="tab-overflow-btn" class="tab-btn"
+              style="background:rgba(0,0,0,0.15); border:1px solid var(--border-subtle); padding:6px 12px; height:34px;"
+              title="More views">More ▾</button>
+            <div id="tab-overflow-dropdown" class="tab-overflow-dropdown hidden"
+              style="position:absolute; top:38px; right:0; background:var(--bg-surface); border:1px solid var(--border-focus); border-radius:var(--radius-md); box-shadow:0 8px 24px rgba(0,0,0,0.3); z-index:999; display:flex; flex-direction:column; min-width:180px; padding:6px 0;">
+              <button class="tab-btn dropdown-item" data-tab="logs" role="tab"
+                style="text-align:left; width:100%; padding:8px 16px; background:transparent; border:none; cursor:pointer;">📋
+                Audit Trail</button>
+              <button class="tab-btn dropdown-item" data-tab="scratchpad" role="tab"
+                style="text-align:left; width:100%; padding:8px 16px; background:transparent; border:none; cursor:pointer;">📝
+                Scratchpad</button>
+              <button class="tab-btn dropdown-item" data-tab="spreadsheet" role="tab"
+                style="text-align:left; width:100%; padding:8px 16px; background:transparent; border:none; cursor:pointer;">📊
+                Spreadsheet</button>
+              <button class="tab-btn dropdown-item" data-tab="calendar" role="tab"
+                style="text-align:left; width:100%; padding:8px 16px; background:transparent; border:none; cursor:pointer;">📅
+                Scheduling</button>
+            </div>
+          </div>
+          <button id="manual-sync-btn" class="btn btn-secondary"
+            style="margin-left: auto; padding: 6px 12px; height: 34px; font-size: 12.5px; border-radius: var(--radius-sm);">🔄
+            Sync Inbox</button>
+        </div>
+
+        <!-- Tab Panel: Inbox -->
+        <div id="tab-inbox" class="tab-panel active" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>Fetched Emails</h2>
+              <p>Click "Summarize" on any email to generate AI summary and store in FAISS.</p>
+            </div>
+          </div>
+          <div id="email-list">
+            <div class="empty-state">
+              <div class="empty-icon">📭</div>
+              <p>Enter a sender filter above and click "Fetch Emails" to get started.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Panel: Client Profiles -->
+        <div id="tab-profiles" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>👥 Client Directory</h2>
+              <p>Import from spreadsheets, execute custom column queries, and manage client profiles.</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button id="crm-clear-import-btn" class="btn btn-secondary btn-sm" style="display:none;">Clear Imported
+                Database</button>
+              <label class="btn btn-primary btn-sm" style="margin:0; cursor:pointer;">
+                📂 Import Spreadsheet
+                <input id="crm-file-input" type="file" accept=".xlsx,.xls,.csv" style="display:none;" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Dropzone Importer Zone (Hidden unless database empty or requested) -->
+          <div id="crm-import-dropzone" class="excel-dropzone"
+            style="margin-bottom:16px; border: 2px dashed var(--border-subtle); padding:20px; border-radius:var(--radius-lg); text-align:center; background:rgba(0,0,0,0.1); cursor:pointer;">
+            <div style="font-size:24px; margin-bottom:6px;">📊</div>
+            <div style="font-weight:600; font-size:13.5px; margin-bottom:4px;">Drag & Drop Client Spreadsheet here</div>
+            <div style="font-size:11.5px; color:var(--text-muted);">Supports .xlsx, .xls, and .csv columns (Client Name,
+              Client Email, Phone, Company Name, Status...)</div>
+          </div>
+
+          <div class="crm-container">
+            <div id="profiles-sidebar" class="crm-sidebar">
+              <!-- Custom Search & Filters Group -->
+              <div class="crm-search-wrapper" style="display:flex; flex-direction:column; gap:8px;">
+                <div class="select-wrapper">
+                  <select id="crm-column-filter"
+                    style="width:100%; padding:6px; font-size:12.5px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);">
+                    <option value="all">🔍 Search All Columns</option>
+                    <option value="name">Client Name</option>
+                    <option value="email">Client Email</option>
+                    <option value="company">Company Name</option>
+                    <option value="industry">Industry</option>
+                    <option value="status">Status</option>
+                  </select>
+                </div>
+                <input id="crm-profile-search" type="text" placeholder="Type to filter..."
+                  style="width:100%; padding:8px; font-size:12.5px;" />
+              </div>
+
+              <!-- Client Spreadsheet Import History Logs -->
+              <div id="crm-history-panel"
+                style="margin-top:4px; display:flex; flex-direction:column; gap:6px; border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+                <div
+                  style="font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:2px;">
+                  🕒 Import History Logs</div>
+                <div id="crm-history-list"
+                  style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto;">
+                  <div style="font-size:11.5px; color:var(--text-muted);">No logs yet.</div>
+                </div>
+              </div>
+
+              <div id="profiles-list" style="margin-top:8px;">
+                <div class="empty-state">No client profiles loaded. Please import a spreadsheet to populate the
+                  directory!</div>
+              </div>
+            </div>
+            <div id="profile-detail-card" class="crm-detail-view">
+              <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <p>Select a client from the directory sidebar to view full profiles, contact numbers, industry stats,
+                  and past communication logs.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Panel: Operations Kanban Board -->
+        <div id="tab-kanban" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>📋 Operations Board</h2>
+              <p>Manage and track email follow-ups and active tasks on a visual status board.</p>
+            </div>
+            <button id="add-kanban-task-btn" class="btn btn-primary">+ Add Custom Task</button>
+          </div>
+
+          <!-- Operations Summary metrics bar -->
+          <div id="kanban-analytics-bar"
+            style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:20px;">
+            <div class="glass-card"
+              style="padding:14px; display:flex; flex-direction:column; gap:4px; border:1px solid var(--border-subtle);">
+              <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Total
+                Tasks Tickets</span>
+              <span id="stat-total-tasks" style="font-size:24px; font-weight:800; color:var(--text-primary);">0</span>
+            </div>
+            <div class="glass-card"
+              style="padding:14px; display:flex; flex-direction:column; gap:4px; border:1px solid var(--border-subtle);">
+              <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Task
+                Completion Rate</span>
+              <span id="stat-completion-rate"
+                style="font-size:24px; font-weight:800; color:var(--accent-primary);">0%</span>
+            </div>
+            <div id="stat-grievances-card" class="glass-card"
+              style="padding:14px; display:flex; flex-direction:column; gap:4px; border:1px solid var(--border-subtle); transition: all 0.3s ease;">
+              <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">⚠️
+                Active Grievance Tickets</span>
+              <span id="stat-active-grievances"
+                style="font-size:24px; font-weight:800; color:var(--text-primary);">0</span>
+            </div>
+          </div>
+
+          <div class="kanban-board">
+            <!-- To Do -->
+            <div class="kanban-column" data-status="todo">
+              <div class="kanban-column-header" style="border-top: 4px solid var(--text-muted);">
+                <h3>To Do</h3>
+                <span class="kanban-card-count" id="todo-count">0</span>
+              </div>
+              <div class="kanban-cards-container" id="kanban-todo"></div>
+            </div>
+            <!-- In Progress -->
+            <div class="kanban-column" data-status="inprogress">
+              <div class="kanban-column-header" style="border-top: 4px solid var(--accent-primary);">
+                <h3>In Progress</h3>
+                <span class="kanban-card-count" id="inprogress-count">0</span>
+              </div>
+              <div class="kanban-cards-container" id="kanban-inprogress"></div>
+            </div>
+            <!-- Done -->
+            <div class="kanban-column" data-status="done">
+              <div class="kanban-column-header" style="border-top: 4px solid var(--accent-success);">
+                <h3>Done</h3>
+                <span class="kanban-card-count" id="done-count">0</span>
+              </div>
+              <div class="kanban-cards-container" id="kanban-done"></div>
+            </div>
+          </div>
+
+          <!-- Grievance & Task Tickets Ledger view (Displays full screen adjacent to Kanban board when triggered) -->
+          <div id="kanban-ledger-pane" class="hidden"
+            style="margin-top:20px; display:flex; flex-direction:column; gap:16px; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-surface); padding:20px; transition: all 0.3s ease; width:100%;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); padding-bottom:12px;">
+              <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--text-primary);">⚠️ Client Tickets &
+                Grievance Inspector</h3>
+              <button id="close-ledger-pane-btn" class="btn btn-ghost btn-sm"
+                style="padding: 4px 10px; font-size:14px;">&times; Close List</button>
+            </div>
+
+            <!-- Two Main Sub-Tabs (Grievance Ledger vs Client Associated Tasks) -->
+            <div style="display:flex; gap:12px; border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+              <button id="ledger-main-tab-grievances" class="btn btn-secondary btn-sm active"
+                style="font-weight:700; border-radius:4px; padding:6px 16px;">⚠️ Grievance Tickets</button>
+              <button id="ledger-main-tab-tasks" class="btn btn-secondary btn-sm"
+                style="font-weight:600; border-radius:4px; padding:6px 16px; background:transparent; border-color:var(--border-subtle); color:var(--text-muted);">📋
+                Client Associated Tasks</button>
+            </div>
+
+            <!-- View 1: Grievance Tickets Panel -->
+            <div id="ledger-grievance-panel" style="display:flex; flex-direction:column; gap:12px;">
+              <!-- Tab switches for Active vs Inactive tickets -->
+              <div style="display:flex; gap:8px; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;">
+                <button id="ledger-tab-active" class="btn btn-secondary btn-sm"
+                  style="border-radius:12px; font-weight:700; background:rgba(244,63,94,0.1); color:#f43f5e; border-color:rgba(244,63,94,0.3);">🔴
+                  Active Tickets / Grievances</button>
+                <button id="ledger-tab-inactive" class="btn btn-secondary btn-sm"
+                  style="border-radius:12px; font-weight:600; border-color:var(--border-subtle); color:var(--text-muted); background:transparent;">🟢
+                  Resolved / Inactive Tickets</button>
+              </div>
+
+              <!-- Ledger list items containers -->
+              <div id="ledger-list-container"
+                style="max-height:450px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:4px 0;">
+                <!-- Dynamic grievance items list details -->
+              </div>
+            </div>
+
+            <!-- View 2: Client Associated Tasks Panel (Hidden by default) -->
+            <div id="ledger-tasks-panel" class="hidden" style="display:flex; flex-direction:column; gap:12px;">
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Showing all Kanban operations
+                tasks mapped to client profiles:</div>
+              <div id="ledger-tasks-list-container"
+                style="max-height:450px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:4px 0;">
+                <!-- Dynamic task items lists populated by main.js -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Panel: Stored Summaries -->
+        <div id="tab-summaries" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>Stored Summaries</h2>
+              <p>All email summaries stored in your local FAISS vector index.</p>
+            </div>
+            <button id="refresh-summaries-btn" class="btn btn-secondary">
+              ↻ Refresh
+            </button>
+          </div>
+          <div id="summaries-grid">
+            <div class="empty-state">
+              <div class="empty-icon">🗂️</div>
+              <p>No summaries yet. Fetch emails and click summarize.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Panel: Semantic Search -->
+        <div id="tab-search" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>Semantic Search</h2>
+              <p>Natural language search across all stored email summaries.</p>
+            </div>
+          </div>
+          <div class="search-bar">
+            <div class="input-wrapper">
+              <span class="input-icon">🔍</span>
+              <input id="search-input" type="search" placeholder='e.g. "payment confirmation" or "project updates"' />
+            </div>
+            <div class="select-wrapper" style="min-width: 130px;">
+              <select id="search-limit">
+                <option value="3">Top 3 results</option>
+                <option value="5" selected>Top 5 results</option>
+                <option value="10">Top 10 results</option>
+                <option value="20">Top 20 results</option>
+              </select>
+            </div>
+            <button id="search-btn" class="btn btn-primary" style="min-width:100px">Search</button>
+          </div>
+          <div id="search-results">
+            <!-- Dynamic Best Match / Top-1 section -->
+            <div id="search-top-match-container"></div>
+
+            <!-- Other relevant matches -->
+            <div id="search-other-matches-title"
+              style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-top:20px; display:none; border-bottom:1px solid var(--border-subtle); padding-bottom:6px;">
+              Other Relevant Matches</div>
+            <div id="search-other-matches-list"></div>
+
+            <div class="empty-state" id="search-initial-empty">
+              <div class="empty-icon">🔍</div>
+              <p>Type a query above to search your summarized email index.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Panel: Knowledge Graph -->
+        <div id="tab-graph" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>Knowledge Graph</h2>
+              <p>Interactive network mapping relationships between senders, organizations, topics, and action items.</p>
+            </div>
+            <button id="rebuild-graph-btn" class="btn btn-secondary">
+              ↻ Rebuild Graph
+            </button>
+          </div>
+
+          <!-- Graph Toolbar & Filter Bar -->
+          <div class="graph-toolbar"
+            style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+            <div class="filter-chips">
+              <label class="chip active" data-type="sender">
+                <input type="checkbox" checked data-filter="sender" /> 👤 Senders
+              </label>
+              <label class="chip active" data-type="email">
+                <input type="checkbox" checked data-filter="email" /> ✉️ Emails
+              </label>
+              <label class="chip active" data-type="organization">
+                <input type="checkbox" checked data-filter="organization" /> 🏢 Organizations
+              </label>
+              <label class="chip active" data-type="topic">
+                <input type="checkbox" checked data-filter="topic" /> 🏷️ Topics
+              </label>
+              <label class="chip active" data-type="action_item">
+                <input type="checkbox" checked data-filter="action_item" /> ⚡ Action Items
+              </label>
+            </div>
+
+            <div style="flex:1; max-width:320px; min-width:200px;">
+              <input type="text" id="graph-search-input" placeholder="🔍 Search nodes (e.g. uncompleted payment)..."
+                style="width:100%; padding:6px 12px; font-size:12.5px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); outline:none;" />
+            </div>
+          </div>
+
+          <!-- Graph Workspace: Canvas + Inspector Sidebar -->
+          <div class="graph-workspace">
+            <div class="canvas-container">
+              <canvas id="graph-canvas"></canvas>
+              <div class="graph-instructions">
+                Drag nodes to rearrange • Scroll to zoom • Click node for details
+              </div>
+            </div>
+
+            <div id="graph-inspector" class="graph-inspector hidden">
+              <div class="inspector-header">
+                <div id="inspector-icon" class="inspector-icon">👤</div>
+                <div>
+                  <h3 id="inspector-title">Node Name</h3>
+                  <span id="inspector-type" class="inspector-badge">Sender</span>
+                </div>
+              </div>
+              <div id="inspector-body" class="inspector-body">
+                <p>Click any node in the Knowledge Graph to inspect its details and connections.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Panel: Activity Logs -->
+        <div id="tab-logs" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>Activity & Audit Logs</h2>
+              <p>Chronological history of operations, actions, and API events committed by your account.</p>
+            </div>
+            <button id="refresh-logs-btn" class="btn btn-secondary">
+              ↻ Refresh Logs
+            </button>
+          </div>
+          <div class="logs-container">
+            <div id="logs-list" class="logs-list">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>Loading activity logs...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Panel: Scratchpad -->
+        <div id="tab-scratchpad" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>Personal Scratchpad</h2>
+              <p>Write notes, save research, or dump snippets. Persisted securely on the server.</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <input type="file" id="scratchpad-image-loader" accept="image/png, image/jpeg" style="display:none;" />
+              <button id="scratchpad-import-image-btn" class="btn btn-secondary">
+                🖼️ Import Image
+              </button>
+              <button id="export-pdf-btn" class="btn btn-secondary">
+                📄 Export PDF
+              </button>
+              <button id="save-scratchpad-btn" class="btn btn-primary">
+                💾 Save Notes
+              </button>
+            </div>
+          </div>
+          <div class="scratchpad-container"
+            style="flex:1; display:flex; flex-direction:column; gap:12px; height:calc(100vh - 280px); width: 100%;">
+            <div id="scratchpad-text" contenteditable="true"
+              style="flex:1; width:100%; min-height:400px; padding:16px; font-family:inherit; font-size:14px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:var(--text-primary); overflow-y:auto; line-height:1.6; outline:none;"
+              placeholder="Start writing here..."></div>
+            <div id="scratchpad-status"
+              style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;"></div>
+          </div>
+        </div>
+
+        <!-- Tab Panel: Spreadsheet Importer & Viewer -->
+        <div id="tab-spreadsheet" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>Excel & CSV Viewer</h2>
+              <p>Import workbooks and view all columns and rows in an interactive table.</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <input type="file" id="excel-file-loader" accept=".xlsx, .xls, .csv" style="display:none;" />
+              <button id="excel-import-btn" class="btn btn-primary">
+                📂 Import Spreadsheet File
+              </button>
+            </div>
+          </div>
+          <div class="spreadsheet-container"
+            style="flex:1; display:flex; gap:16px; height:calc(100vh - 280px); width:100%;">
+
+            <!-- Left Sidebar: Import History logs list -->
+            <div id="spreadsheet-history-sidebar"
+              style="flex:1; max-width:280px; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px; display:flex; flex-direction:column; gap:12px; overflow-y:auto;">
+              <h3
+                style="font-size:13px; font-weight:700; border-bottom:1px solid var(--border-subtle); padding-bottom:8px; margin:0; display:flex; align-items:center; gap:6px;">
+                🕒 Import History Logs</h3>
+              <div id="spreadsheet-history-list" style="display:flex; flex-direction:column; gap:8px;">
+                <div style="font-size:12px; color:var(--text-muted);">No spreadsheets imported yet.</div>
+              </div>
+            </div>
+
+            <!-- Right Workspace Pane: Drop Zone or Table Viewer -->
+            <div style="flex:3; display:flex; flex-direction:column; gap:12px; height:100%; overflow:hidden;">
+              <!-- Drag & Drop Upload Zone -->
+              <div id="excel-drop-zone"
+                style="border:2px dashed var(--border-subtle); border-radius:var(--radius-md); padding:60px 40px; text-align:center; background:rgba(255,255,255,0.01); transition:background 0.2s; cursor:pointer;">
+                <div style="font-size:32px; margin-bottom:8px;">📊</div>
+                <div style="font-size:14px; font-weight:600; color:var(--text-primary);">Drag & drop your Excel (.xlsx,
+                  .xls) or CSV file here</div>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">or click "Import Spreadsheet File"
+                  above to browse</div>
+              </div>
+
+              <!-- Excel Sheet Tabs (Visible when multi-sheet workbooks are parsed) -->
+              <div id="excel-sheet-tabs"
+                style="display:flex; gap:6px; flex-wrap:wrap; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;"
+                class="hidden"></div>
+
+              <!-- Tabular View Container -->
+              <div id="excel-table-view-container"
+                style="flex:1; overflow:auto; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); display:none;">
+                <table id="excel-data-table"
+                  style="width:100%; border-collapse:collapse; text-align:left; font-size:13px; color:var(--text-primary);">
+                  <!-- Dynamically populated table values -->
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Tab Panel: Calendar -->
+        <div id="tab-calendar" class="tab-panel" role="tabpanel">
+          <div class="panel-header">
+            <div>
+              <h2>📅 Interactive Workspace Calendar</h2>
+              <p>Plan tasks, schedule action items, and manage platform reminders.</p>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <button id="calendar-prev-month-btn" class="btn btn-secondary btn-sm">◀ Prev</button>
+              <span id="calendar-month-year-label"
+                style="font-size:16px; font-weight:600; min-width:140px; text-align:center;"></span>
+              <button id="calendar-next-month-btn" class="btn btn-secondary btn-sm">Next ▶</button>
+              <button id="calendar-add-event-btn" class="btn btn-primary btn-sm">➕ Add Event</button>
+            </div>
+          </div>
+          <div class="calendar-workspace"
+            style="display:flex; gap:20px; flex:1; height:calc(100vh - 280px); width:100%;">
+            <!-- Calendar Matrix Grid -->
+            <div
+              style="flex:2.5; display:flex; flex-direction:column; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden;">
+              <!-- Weekday Headers -->
+              <div
+                style="display:grid; grid-template-columns: repeat(7, 1fr); background:var(--bg-surface); border-bottom:1px solid var(--border-subtle); text-align:center; padding:10px 0; font-weight:600; font-size:13px; color:var(--text-secondary);">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+              </div>
+              <!-- Monthly Calendar Days Matrix Grid -->
+              <div id="calendar-days-grid"
+                style="flex:1; display:grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, 1fr); background:rgba(0,0,0,0.15);">
+                <!-- Dynamic calendar cells loaded by main.js -->
+              </div>
+            </div>
+
+            <!-- Calendar Events Sidebar -->
+            <div
+              style="flex:1; display:flex; flex-direction:column; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px; overflow-y:auto; gap:12px;">
+              <h3
+                style="font-size:15px; font-weight:600; border-bottom:1px solid var(--border-subtle); padding-bottom:8px; margin:0;">
+                Upcoming Reminders</h3>
+              <div id="calendar-sidebar-events-list" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Event cards rendered by main.js -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Sticky Club Selection Bar -->
+    <div id="club-action-bar" class="club-action-bar hidden">
+      <div class="club-bar-info">
+        <span id="club-count-badge" class="club-badge">0 emails selected</span>
+      </div>
+      <div class="club-bar-actions">
+        <button id="select-all-btn" class="btn btn-ghost btn-sm">Select All</button>
+        <button id="clear-selection-btn" class="btn btn-ghost btn-sm">Clear</button>
+        <button id="summarize-club-btn" class="btn btn-primary btn-sm">✦ Summarize Group</button>
+      </div>
+    </div>
+
+    <!-- Compose Email Modal -->
+    <div id="compose-modal" class="compose-modal-backdrop hidden">
+      <div class="compose-modal-card glass-card">
+        <div class="compose-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <h3>✉️ New Message</h3>
+            <button id="ai-draft-assist-toggle-btn" class="btn btn-ghost btn-sm"
+              style="padding:4px 8px; font-size:11.5px; border-color:var(--border-subtle); color:var(--accent-primary);">✨
+              AI Assist</button>
+          </div>
+          <button id="close-compose-btn" class="close-btn">&times;</button>
+        </div>
+
+        <!-- Collapsible AI Draft Assist Panel -->
+        <div id="ai-draft-assist-panel" class="hidden"
+          style="background:rgba(129, 140, 248, 0.04); border-bottom:1px solid var(--border-subtle); padding:12px 20px; display:flex; flex-direction:column; gap:8px;">
+          <div
+            style="font-size:12px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+            ✨ PERSONA EMAIL DRAFT ASSISTANT</div>
+          <div style="display:grid; grid-template-columns: 140px 1fr; gap:8px; align-items:center;">
+            <select id="ai-draft-persona"
+              style="padding:6px; font-size:12.5px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); cursor:pointer;">
+              <option value="👔 Business & ROI Focus">👔 Business Focus (ROI)</option>
+              <option value="⚙️ Technical Product Aspects">⚙️ Technical Aspect</option>
+              <option value="👥 HR & Hiring Alignment">👥 HR / Recruiting</option>
+              <option value="🚨 Urgent Alert & Outreach">🚨 Urgent / Outage</option>
+              <option value="☕ Casual Follow-up">☕ Casual Followup</option>
+            </select>
+            <input id="ai-draft-description" type="text" placeholder="e.g. Pitching cloud backup with 99.99% uptime"
+              style="padding:6px 10px; font-size:12.5px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); width:100%;" />
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:2px;">
+            <button id="ai-draft-generate-btn" class="btn btn-primary btn-sm"
+              style="padding:4px 10px; font-size:11.5px;">✨ Generate Draft</button>
+          </div>
+        </div>
+
+        <div class="compose-body">
+          <div class="compose-field">
+            <label for="compose-to">To:</label>
+            <input id="compose-to" type="email" placeholder="user1@example.com, user2@example.com" multiple />
+          </div>
+          <div class="compose-field">
+            <label for="compose-subject">Subject:</label>
+            <input id="compose-subject" type="text" placeholder="Email subject" />
+          </div>
+          <div class="compose-field">
+            <label for="compose-body-text">Message:</label>
+            <textarea id="compose-body-text" rows="8" placeholder="Type your email content here..."></textarea>
+          </div>
+          <div class="compose-field">
+            <label>Attachments:</label>
+            <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+              <button id="add-attachment-btn" class="btn btn-secondary"
+                style="width:fit-content; padding: 6px 12px; font-size:12.5px;">📎 Attach Files</button>
+              <input id="compose-file-input" type="file" multiple style="display:none;" />
+              <div id="attachments-preview" class="attachments-preview"
+                style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="compose-footer">
+          <button id="cancel-compose-btn" class="btn btn-ghost">Cancel</button>
+          <button id="send-email-btn" class="btn btn-primary">Send Email</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Email Viewer Modal -->
+    <div id="email-detail-modal" class="compose-modal-backdrop hidden">
+      <div class="compose-modal-card glass-card"
+        style="max-width:760px; max-height: 85vh; display:flex; flex-direction:column;">
+        <div class="compose-header">
+          <div style="display:flex; align-items:center; gap:10px; flex:1; overflow:hidden;">
+            <span style="font-size:18px">✉️</span>
+            <h3 id="modal-email-subject"
+              style="font-size:15px; font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
+              Subject</h3>
+          </div>
+          <button id="close-detail-modal-btn" class="close-btn">&times;</button>
+        </div>
+        <div class="compose-body" style="overflow-y:auto; flex:1; gap:16px;">
+          <div class="detail-meta-bar">
+            <div><span class="inspector-label">From:</span> <span id="modal-email-from"
+                style="color:var(--text-primary); font-weight:500;"></span></div>
+            <div><span class="inspector-label">Date:</span> <span id="modal-email-date"
+                style="color:var(--text-secondary);"></span></div>
+          </div>
+          <div id="modal-summary-box" class="summary-content hidden" style="margin: 4px 0;">
+            <div class="summary-label">✦ AI Summary</div>
+            <p id="modal-email-summary"></p>
+          </div>
+          <div class="detail-body-box">
+            <div class="inspector-label" style="margin-bottom:8px;">Full Email Message</div>
+            <div id="modal-email-body" class="email-full-body-text"></div>
+          </div>
+        </div>
+        <div class="compose-footer" style="justify-content:space-between">
+          <button id="modal-summarize-btn" class="btn btn-secondary btn-sm">✦ Summarize This Email</button>
+          <div style="display:flex; gap:8px;">
+            <button id="modal-reply-btn" class="btn btn-secondary btn-sm"
+              style="background:var(--bg-elevated); border-color:var(--border-subtle); color:var(--text-primary);">↩️
+              Reply</button>
+            <button id="modal-forward-btn" class="btn btn-primary btn-sm">✉️ Forward</button>
+            <button id="modal-close-bottom-btn" class="btn btn-ghost btn-sm">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tracked Reply Detailed Actions Modal -->
+    <div id="reply-detail-modal" class="compose-modal-backdrop hidden">
+      <div class="compose-modal-card glass-card"
+        style="max-width:760px; max-height: 85vh; display:flex; flex-direction:column;">
+        <div class="compose-header">
+          <h3 id="reply-modal-title">🔔 Thread Reply Details</h3>
+          <button id="close-reply-modal-btn" class="close-btn">&times;</button>
+        </div>
+        <div class="compose-body"
+          style="flex:1; overflow-y:auto; padding-right:8px; display:flex; flex-direction:column; gap:16px;">
+          <div class="detail-header-info" style="border-bottom:1px solid var(--border-subtle); padding-bottom:12px;">
+            <div
+              style="font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:4px;">
+              Subject</div>
+            <div id="reply-modal-subject" style="font-size:16px; font-weight:600; color:var(--text-primary);"></div>
+            <div
+              style="font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-top:8px; margin-bottom:4px;">
+              Receiver / Reply Sender</div>
+            <div id="reply-modal-sender" style="font-size:13.5px; color:var(--text-secondary);"></div>
+          </div>
+
+          <div class="detail-body-box" style="flex:1; display:flex; flex-direction:column; min-height:250px;">
+            <div class="inspector-label" style="margin-bottom:8px; font-weight:600; color:var(--text-primary);">Thread
+              Conversation History</div>
+            <div id="reply-modal-thread-history"
+              style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; background:rgba(0,0,0,0.2); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px;">
+              <!-- Message list items will be injected here dynamically -->
+            </div>
+          </div>
+        </div>
+        <div class="compose-footer" style="justify-content:space-between">
+          <button id="reply-modal-dismiss-btn" class="btn btn-secondary btn-sm"
+            style="background:#f87171; color:white; border-color:#ef4444;">Dismiss Reply Alert</button>
+          <div style="display:flex; gap:8px;">
+            <button id="reply-modal-convert-task-btn" class="btn btn-secondary btn-sm"
+              style="background:var(--accent-primary); color:white; border:none;">⚡ Convert to Task</button>
+            <button id="reply-modal-summarize-btn" class="btn btn-secondary btn-sm">✦ Summarize & Store</button>
+            <button id="reply-modal-compose-btn" class="btn btn-primary btn-sm">✉️ Reply</button>
+            <button id="reply-modal-close-btn" class="btn btn-ghost btn-sm">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF Export Actions Modal -->
+    <div id="pdf-actions-modal" class="compose-modal-backdrop hidden">
+      <div class="compose-modal-card glass-card"
+        style="max-width:420px; display:flex; flex-direction:column; gap:16px; padding:20px; border:1px solid var(--border-focus);">
+        <div class="compose-header" style="border:none; padding:0; min-height:auto;">
+          <h3 style="font-size:16px; margin:0;">📄 Export Scratchpad PDF</h3>
+          <button id="close-pdf-modal-btn" class="close-btn" style="top:12px; right:12px;">&times;</button>
+        </div>
+        <div class="compose-body" style="padding:0; display:flex; flex-direction:column; gap:10px; margin: 10px 0;">
+          <p style="font-size:12.5px; color:var(--text-secondary); margin:0 0 8px 0; line-height:1.4;">
+            Set a custom filename for your generated document below:
+          </p>
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="pdf-filename-input"
+              style="font-size:12px; font-weight:600; color:var(--text-muted);">FILENAME:</label>
+            <input id="pdf-filename-input" type="text" value="scratchpad.pdf"
+              style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+          </div>
+        </div>
+        <div class="compose-footer"
+          style="border:none; padding:0; display:flex; flex-direction:column; gap:8px; width:100%;">
+          <button id="pdf-download-btn" class="btn btn-primary" style="width:100%; padding:8px; font-size:13px;">💾
+            Download PDF</button>
+          <button id="pdf-share-btn" class="btn btn-secondary" style="width:100%; padding:8px; font-size:13px;">✉️ Share
+            via Email</button>
+          <button id="pdf-cancel-btn" class="btn btn-ghost"
+            style="width:100%; padding:8px; font-size:13px;">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Kanban Task Modal -->
+    <div id="task-modal" class="compose-modal-backdrop hidden">
+      <div class="compose-modal-card glass-card"
+        style="max-width:450px; display:flex; flex-direction:column; gap:16px; padding:20px; border:1px solid var(--border-focus);">
+        <div class="compose-header" style="border:none; padding:0; min-height:auto;">
+          <h3 id="task-modal-title" style="font-size:16px; margin:0;">📋 Create Operations Task</h3>
+          <button id="close-task-modal-btn" class="close-btn" style="top:12px; right:12px;">&times;</button>
+        </div>
+        <div class="compose-body" style="padding:0; display:flex; flex-direction:column; gap:12px; margin: 10px 0;">
+          <input type="hidden" id="task-id-input" />
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+              <label for="task-client-email-input"
+                style="font-size:11px; font-weight:600; color:var(--text-muted);">CLIENT EMAIL:</label>
+              <input id="task-client-email-input" type="email" placeholder="client@company.com"
+                style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+            </div>
+            <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+              <label for="task-company-input" style="font-size:11px; font-weight:600; color:var(--text-muted);">COMPANY
+                NAME:</label>
+              <input id="task-company-input" type="text" placeholder="Autofetched company..."
+                style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+            </div>
+          </div>
+
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="task-title-input" style="font-size:12px; font-weight:600; color:var(--text-muted);">TASK
+              TITLE:</label>
+            <input id="task-title-input" type="text" placeholder="e.g. Follow up on invoice #204"
+              style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+          </div>
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="task-desc-input" style="font-size:12px; font-weight:600; color:var(--text-muted);">DESCRIPTION /
+              DETAILS:</label>
+            <textarea id="task-desc-input" rows="4" placeholder="Enter notes or email summaries here..."
+              style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); resize:vertical; font-family:inherit;"></textarea>
+          </div>
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="task-status-select"
+              style="font-size:12px; font-weight:600; color:var(--text-muted);">STATUS:</label>
+            <select id="task-status-select"
+              style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);">
+              <option value="todo">To Do</option>
+              <option value="inprogress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="compose-footer"
+          style="border:none; padding:0; display:flex; gap:8px; width:100%; justify-content:flex-end;">
+          <button id="task-delete-btn" class="btn btn-secondary"
+            style="background:#f87171; color:white; border-color:#ef4444; margin-right:auto; display:none;">🗑️
+            Delete</button>
+          <button id="task-cancel-btn" class="btn btn-ghost">Cancel</button>
+          <button id="task-save-btn" class="btn btn-primary">💾 Save Task</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar Event Modals (Create / View Event) -->
+    <div id="calendar-event-modal" class="compose-modal-backdrop hidden">
+      <div class="compose-modal-card glass-card"
+        style="max-width:440px; display:flex; flex-direction:column; gap:16px; padding:20px; border:1px solid var(--border-focus);">
+        <div class="compose-header" style="border:none; padding:0; min-height:auto;">
+          <h3 id="calendar-modal-title" style="font-size:16px; margin:0;">📅 Schedule Workspace Event</h3>
+          <button id="close-calendar-modal-btn" class="close-btn" style="top:12px; right:12px;">&times;</button>
+        </div>
+        <div class="compose-body" style="padding:0; display:flex; flex-direction:column; gap:12px; margin: 10px 0;">
+          <input type="hidden" id="calendar-event-id" />
+
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="calendar-event-title" style="font-size:12px; font-weight:600; color:var(--text-muted);">EVENT
+              TITLE:</label>
+            <input id="calendar-event-title" type="text" placeholder="e.g. Discuss Q3 roadmap"
+              style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+          </div>
+
+          <div style="display:flex; gap:12px; width:100%;">
+            <div class="compose-field" style="flex:1; flex-direction:column; align-items:flex-start; gap:6px;">
+              <label for="calendar-event-date"
+                style="font-size:12px; font-weight:600; color:var(--text-muted);">DATE:</label>
+              <input id="calendar-event-date" type="date"
+                style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+            </div>
+            <div class="compose-field" style="flex:1; flex-direction:column; align-items:flex-start; gap:6px;">
+              <label for="calendar-event-time"
+                style="font-size:12px; font-weight:600; color:var(--text-muted);">TIME:</label>
+              <input id="calendar-event-time" type="time"
+                style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+            </div>
+          </div>
+
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="calendar-event-notify"
+              style="font-size:12px; font-weight:600; color:var(--text-muted);">REMINDER ALARM:</label>
+            <select id="calendar-event-notify"
+              style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); outline:none;">
+              <option value="0">None (No alarm)</option>
+              <option value="5">5 minutes before</option>
+              <option value="15" selected>15 minutes before</option>
+              <option value="30">30 minutes before</option>
+              <option value="60">1 hour before</option>
+            </select>
+          </div>
+
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="calendar-event-desc"
+              style="font-size:12px; font-weight:600; color:var(--text-muted);">DESCRIPTION:</label>
+            <textarea id="calendar-event-desc" placeholder="Details about this follow-up..."
+              style="width:100%; height:60px; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); resize:none; font-family:inherit;"></textarea>
+          </div>
+        </div>
+        <div class="compose-footer"
+          style="border:none; padding:0; display:flex; justify-content:space-between; width:100%;">
+          <button id="calendar-delete-event-btn" class="btn btn-secondary btn-sm"
+            style="background:#ef4444; border-color:#dc2626; color:white; display:none;">🗑️ Delete</button>
+          <div style="display:flex; gap:8px; margin-left:auto;">
+            <button id="calendar-cancel-event-btn" class="btn btn-ghost btn-sm">Cancel</button>
+            <button id="calendar-save-event-btn" class="btn btn-primary btn-sm">💾 Save Event</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Settings & Cleanliness Modal -->
+    <div id="settings-modal" class="compose-modal-backdrop hidden">
+      <div class="compose-modal-card glass-card"
+        style="max-width:500px; display:flex; flex-direction:column; gap:16px; padding:20px; border:1px solid var(--border-focus);">
+        <div class="compose-header"
+          style="border:none; padding:0; min-height:auto; display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="font-size:16px; margin:0; display:flex; align-items:center; gap:8px;">⚙️ Workspace Configuration
+          </h3>
+          <button id="close-settings-modal-btn" class="close-btn"
+            style="background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+
+        <!-- Modal Tabs Header -->
+        <div style="display:flex; border-bottom:1px solid var(--border-subtle); margin-bottom:4px;">
+          <button id="settings-tab-profile" class="btn btn-ghost"
+            style="flex:1; border-radius:0; border-bottom:2px solid var(--accent-primary); color:var(--text-primary); font-weight:600; font-size:13px; padding:8px 0; display:flex; align-items:center; justify-content:center; gap:6px;">👤
+            User Profile</button>
+          <button id="settings-tab-system" class="btn btn-ghost"
+            style="flex:1; border-radius:0; border-bottom:2px solid transparent; color:var(--text-muted); font-size:13px; padding:8px 0; display:flex; align-items:center; justify-content:center; gap:6px;">⚙️
+            System Diagnostics</button>
+        </div>
+
+        <div class="compose-body" style="padding:0; display:flex; flex-direction:column; gap:14px; margin: 10px 0;">
+
+          <!-- User Profile Content Tab -->
+          <div id="settings-profile-panel" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label for="profile-name"
+                style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Full
+                Name</label>
+              <input id="profile-name" type="text" placeholder="e.g. John Doe"
+                style="padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); width:100%;" />
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label for="profile-designation"
+                style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Designation
+                / Title</label>
+              <input id="profile-designation" type="text" placeholder="e.g. Director of Operations"
+                style="padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); width:100%;" />
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label for="profile-company"
+                style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Company
+                Name</label>
+              <input id="profile-company" type="text" placeholder="e.g. Acme Corp"
+                style="padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); width:100%;" />
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label for="profile-phone"
+                style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Phone
+                Number</label>
+              <input id="profile-phone" type="text" placeholder="e.g. +1 (555) 019-2834"
+                style="padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); width:100%;" />
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:4px;">
+              <button id="profile-save-btn" class="btn btn-primary"
+                style="padding:8px 16px; font-size:13px; display:flex; align-items:center; gap:6px;">💾 Save Profile
+                Settings</button>
+            </div>
+          </div>
+
+          <!-- System Diagnostics Content Tab -->
+          <div id="settings-system-panel" class="hidden" style="display:flex; flex-direction:column; gap:14px;">
+            <!-- Diagnostics Grid -->
+            <div
+              style="background:rgba(0,0,0,0.15); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px;">
+              <div
+                style="font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; border-bottom:1px solid var(--border-subtle); padding-bottom:4px;">
+                💻 Diagnostics & Health Check</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+                <div>System Uptime: <span id="diag-uptime"
+                    style="color:var(--accent-success); font-weight:600;">Active</span></div>
+                <div>FastAPI Gate: <span style="color:var(--accent-success); font-weight:600;">Online</span></div>
+                <div>OpenAI API: <span style="color:var(--accent-success); font-weight:600;">Online</span></div>
+                <div>Gmail API: <span style="color:var(--accent-success); font-weight:600;">Online</span></div>
+              </div>
+            </div>
+
+            <!-- Local Caches Utilization -->
+            <div
+              style="background:rgba(0,0,0,0.15); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px;">
+              <div
+                style="font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; border-bottom:1px solid var(--border-subtle); padding-bottom:4px;">
+                📊 Storage Cleanliness Details</div>
+              <div style="display:flex; flex-direction:column; gap:6px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span>Local Caches Size:</span>
+                  <span id="diag-storage-size" style="font-weight:600; color:var(--accent-primary);">0 KB</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span>Total Stored Client Profiles:</span>
+                  <span id="diag-profiles-count" style="font-weight:600;">0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- System Clean Actions -->
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div style="font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">🧹
+                System Cleanliness Actions</div>
+              <button id="clean-profiles-btn" class="btn btn-secondary btn-sm"
+                style="display:flex; justify-content:space-between; width:100%; text-align:left; background:rgba(0,0,0,0.2); border-color:var(--border-subtle);">
+                <span>Clear Imported Client Database</span>
+                <span style="font-size:10px; color:var(--text-muted);">Local Storage</span>
+              </button>
+              <button id="clean-tasks-btn" class="btn btn-secondary btn-sm"
+                style="display:flex; justify-content:space-between; width:100%; text-align:left; background:rgba(0,0,0,0.2); border-color:var(--border-subtle);">
+                <span>Purge Operations Task Tickets</span>
+                <span style="font-size:10px; color:var(--text-muted);">server/data/tasks.json</span>
+              </button>
+              <button id="clean-logs-btn" class="btn btn-secondary btn-sm"
+                style="display:flex; justify-content:space-between; width:100%; text-align:left; background:rgba(0,0,0,0.2); border-color:var(--border-subtle);">
+                <span>Clear System Audit Trail Logs</span>
+                <span style="font-size:10px; color:var(--text-muted);">server/data/activity_logs.json</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="compose-footer" style="border:none; padding:0; display:flex; justify-content:flex-end; width:100%;">
+          <button id="settings-close-btn" class="btn btn-ghost btn-sm">Close Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRM Client Touchpoint Form Modal -->
+    <div id="crm-interaction-modal" class="compose-modal-backdrop hidden">
+      <div class="compose-modal-card glass-card"
+        style="max-width:440px; display:flex; flex-direction:column; gap:14px; padding:20px; border:1px solid var(--border-focus);">
+        <div class="compose-header"
+          style="border:none; padding:0; min-height:auto; display:flex; justify-content:space-between; align-items:center;">
+          <h3 id="crm-int-modal-title" style="font-size:15px; margin:0; display:flex; align-items:center; gap:8px;">📞
+            Log Communication Outcome</h3>
+          <button id="close-crm-interaction-modal-btn" class="close-btn"
+            style="background:transparent; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+
+        <div class="compose-body" style="padding:0; display:flex; flex-direction:column; gap:12px;">
+          <input type="hidden" id="crm-int-client-email" />
+
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="crm-int-date" style="font-size:11.5px; font-weight:600; color:var(--text-muted);">TOUCHPOINT
+              DATE:</label>
+            <input id="crm-int-date" type="date"
+              style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+          </div>
+
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="crm-int-topic" style="font-size:11.5px; font-weight:600; color:var(--text-muted);">TOPIC /
+              PURPOSE:</label>
+            <input id="crm-int-topic" type="text" placeholder="e.g. Q3 Sales Pitch, Service Renewal"
+              style="width:100%; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary);" />
+          </div>
+
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <label for="crm-int-outcome" style="font-size:11.5px; font-weight:600; color:var(--text-muted);">OUTCOME
+              SUMMARY:</label>
+            <textarea id="crm-int-outcome"
+              placeholder="e.g. Client signed service renewal, requested billing adjustment"
+              style="width:100%; height:70px; padding:8px 12px; font-size:13px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:var(--text-primary); resize:none; font-family:inherit;"></textarea>
+          </div>
+
+          <div class="compose-field" style="flex-direction:column; align-items:flex-start; gap:8px; margin-top:4px;">
+            <button id="crm-grievance-toggle" type="button"
+              style="width:100%; padding:10px 14px; border-radius:var(--radius-sm); border:1.5px solid var(--border-subtle); background:transparent; color:var(--text-muted); font-size:13px; font-weight:600; cursor:pointer; text-align:left; transition: all 0.2s ease;">⚠️
+              Mark as Grievance / Complaint</button>
+          </div>
+        </div>
+
+        <div class="compose-footer"
+          style="border:none; padding:0; display:flex; justify-content:flex-end; gap:10px; width:100%;">
+          <button id="crm-int-cancel-btn" class="btn btn-ghost btn-sm">Cancel</button>
+          <button id="crm-int-save-btn" class="btn btn-primary btn-sm">💾 Log Touchpoint</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toast-container" aria-live="polite"></div>
+
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

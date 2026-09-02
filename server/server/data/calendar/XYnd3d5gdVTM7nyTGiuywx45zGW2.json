@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1787323267843",
+    "title": "da",
+    "date": "2026-08-21",
+    "time": "10:00",
+    "category": "meeting",
+    "description": "ak",
+    "notifyBefore": 15
+  },
+  {
+    "id": "1787386819886",
+    "title": "Meeting Schedule",
+    "date": "2026-08-07",
+    "time": "12:00",
+    "category": "meeting",
+    "description": "Regarding the Pogress",
+    "notifyBefore": 15
+  },
+  {
+    "id": "1788241504198",
+    "title": "Meeting: Meeting Schedule",
+    "date": "2026-09-09",
+    "time": "12:00",
+    "category": "general",
+    "description": "",
+    "notifyBefore": 15
+  }
+]

@@ -1,0 +1,55 @@
+# Secrets — NEVER commit these
+server/.env
+server/serviceAccountKey.json
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+server/data/
+
+# Node & Frontend
+client/node_modules/
+client/dist/
+client/.env
+client/.env.local
+client/.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+client/playwright-report/
+client/test-results/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+# Ignore all markdown files in root except the main README
+/*.md
+!/README.md
+
+# Archives
+server.zip
