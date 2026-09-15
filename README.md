@@ -1,4 +1,4 @@
-# NexusOpsCRM (NexusMail AI) 🚀
+# NexusOpsCRM 
 
 **NexusOpsCRM** is a privacy-first, on-device AI operations platform that unifies your email inbox, Kanban task board, CRM client directory, and scheduling into a single seamless workspace. Designed to eliminate context switching, it processes all semantic search and AI operations locally on your machine, ensuring zero private data leakage.
 
